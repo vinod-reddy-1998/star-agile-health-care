@@ -39,8 +39,8 @@ pipeline {
     stage('Docker-Login') {
     steps {
       echo 'This stage will login to docker hub'
-        withCredentials([usernamePassword(credentialsId: '8fcdd6cb-7bcf-4989-aa1c-f30f6a2c0ff7', passwordVariable: 'docker-pass', usernameVariable: 'docker-login')]) {
-            sh "docker login -u vinod179719 -p adminadmin"
+        withCredentials([usernamePassword(credentialsId: '8fcdd6cb-7bcf-4989-aa1c-f30f6a2c0ff7', passwordVariable: 'docker-password', usernameVariable: 'docker-login')]) {
+            sh 'docker login -u ${docker-login} -p ${docker-pass}'
         }
     }
 }
