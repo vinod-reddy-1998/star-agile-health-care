@@ -7,15 +7,15 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# Get the default subnet IDs
-data "aws_subnet_ids" "default" {
+# Get the subnet IDs from the default VPC
+data "aws_subnets" "default" {
   vpc_id = data.aws_vpc.default.id
 }
 
 # Get the default subnets
 data "aws_subnet" "default_subnets" {
-  count = length(data.aws_subnet_ids.default.ids)
-  id    = data.aws_subnet_ids.default.ids[count.index]
+  count = length(data.aws_subnets.default.ids)
+  id    = data.aws_subnets.default.ids[count.index]
 }
 
 locals {
@@ -53,8 +53,8 @@ module "eks" {
   }
 
   vpc_id                   = data.aws_vpc.default.id  # Use default VPC ID
-  subnet_ids               = data.aws_subnet_ids.default.ids  # Use default subnet IDs
-  control_plane_subnet_ids = data.aws_subnet_ids.default.ids  # Control plane in public subnets
+  subnet_ids               = data.aws_subnets.default.ids  # Use default subnet IDs
+  control_plane_subnet_ids = data.aws_subnets.default.ids  # Control plane in public subnets
 
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
@@ -87,7 +87,7 @@ module "vpc" {
   name              = "default-vpc"  # Give a name for identification
   cidr              = data.aws_vpc.default.cidr_block
 
-  azs              = data.aws_vpc.default.azs  # Use availability zones from the default VPC
+  azs              = data.aws_vpc.default.availability_zones  # Use the correct attribute for AZs
   private_subnets  = [for subnet in data.aws_subnet.default_subnets : subnet.id]  # Use existing subnets
   public_subnets   = []  # You can define public subnets if needed
   intra_subnets    = []  # Define intra subnets if required
