@@ -8,14 +8,14 @@ data "aws_vpc" "default" {
 }
 
 # Get the subnet IDs from the default VPC
-data "aws_subnets" "default" {
-  vpc_id = data.aws_vpc.default.id
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id  # Correctly use aws_subnet_ids
 }
 
 # Get the default subnets
 data "aws_subnet" "default_subnets" {
-  count = length(data.aws_subnets.default.ids)
-  id    = data.aws_subnets.default.ids[count.index]
+  count = length(data.aws_subnet_ids.default.ids)
+  id    = data.aws_subnet_ids.default.ids[count.index]
 }
 
 # Get the availability zones
@@ -56,8 +56,8 @@ module "eks" {
   }
 
   vpc_id                   = data.aws_vpc.default.id  # Use default VPC ID
-  subnet_ids               = data.aws_subnets.default.ids  # Use default subnet IDs
-  control_plane_subnet_ids = data.aws_subnets.default.ids  # Control plane in public subnets
+  subnet_ids               = data.aws_subnet_ids.default.ids  # Use default subnet IDs
+  control_plane_subnet_ids = data.aws_subnet_ids.default.ids  # Control plane in public subnets
 
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
