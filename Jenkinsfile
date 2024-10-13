@@ -8,7 +8,7 @@ pipeline {
     stage('Git Checkout') {
       steps {
         echo 'This stage is to clone the repo from github'
-        git branch: 'main', url: 'https://github.com/challadevops1/Banking-Project.git'
+        git branch: 'main', url: 'https://github.com/vinod-reddy-1998/star-agile-health-care'
                         }
             }
     stage('Create Package') {
