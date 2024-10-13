@@ -37,12 +37,13 @@ pipeline {
     }
     
     stage('Docker-Login') {
-      steps {
+    steps {
         withCredentials([usernamePassword(credentialsId: '0c9ebfff-840b-44d7-9519-28050e3a12a9', passwordVariable: 'docker-password', usernameVariable: 'docker-login')]) {
-          sh 'docker login -u ${docker-login} -p ${docker-password}'
+            sh "echo ${docker-password} | docker login -u ${docker-login} --password-stdin"
         }
-      }
     }
+}
+
     
     stage('Docker Push-Image') {
       steps {
