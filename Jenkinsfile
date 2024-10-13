@@ -29,5 +29,20 @@ pipeline {
         sh 'docker build -t lvinod179179/healthcare:1.0 .'
                           }
             }
-}
+      }
+  stage('Docker-Login') {
+      steps {
+       withCredentials([usernamePassword(credentialsId: '0c9ebfff-840b-44d7-9519-28050e3a12a9', passwordVariable: 'docker-password', usernameVariable: 'docker-login')])  {
+        sh 'docker login -u ${dockerlogin} -p ${dockerpass}'
+              }
+              }
+            }
+  stage('Docker Push-Image') {
+      steps {
+        echo 'This stage will push my new image to the dockerhub'
+        sh 'docker push lvinod179179/healthcare:1.0'
+            }
+                              }
+
+  
 }
