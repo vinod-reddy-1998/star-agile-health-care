@@ -32,15 +32,15 @@ pipeline {
     stage('Create-Image') {
       steps {
         echo 'This stage will create a Docker image of the application'
-        sh 'docker build -t lvinod179179/healthcare:1.0 .'
+        sh 'docker build -t vinod179179/healthcare:1.0 .'
       }
     }
     
     stage('Docker-Login') {
     steps {
       echo 'This stage will login to docker hub'
-        withCredentials([usernamePassword(credentialsId: '0c9ebfff-840b-44d7-9519-28050e3a12a9', passwordVariable: 'docker-password', usernameVariable: 'docker-login')]) {
-            sh "docker login -u vinod179179 -p adminadmin"
+        withCredentials([usernamePassword(credentialsId: '8fcdd6cb-7bcf-4989-aa1c-f30f6a2c0ff7', passwordVariable: 'docker-pass', usernameVariable: 'docker-login')]) {
+            sh "echo ${docker-pass} | docker login -u ${docker-login} --password-stdin"
         }
     }
 }
@@ -48,7 +48,7 @@ pipeline {
     stage('Docker Push-Image') {
       steps {
         echo 'This stage will push the new Docker image to Docker Hub'
-        sh 'docker push lvinod179179/healthcare:1.0'
+        sh 'docker push vinod179179/healthcare:1.0'
       }
     }
   }
