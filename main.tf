@@ -2,12 +2,20 @@ provider "aws" {
   region = "us-east-1"  # Change to your desired region
 }
 
+# Get the default VPC
 data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnets" "default" {
+# Get the default subnet IDs
+data "aws_subnet_ids" "default" {
   vpc_id = data.aws_vpc.default.id
+}
+
+# Get the default subnets
+data "aws_subnet" "default_subnets" {
+  count = length(data.aws_subnet_ids.default.ids)
+  id    = data.aws_subnet_ids.default.ids[count.index]
 }
 
 locals {
@@ -18,25 +26,7 @@ locals {
   }
 }
 
-# VPC Module
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 4.0"
-
-  name = local.name
-  cidr = "10.0.0.0/16"  # Use your default or desired CIDR range
-
-  azs             = ["us-east-1a", "us-east-1b"]  # Adjust as needed
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]  # Example public subnets
-  private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]  # Example private subnets
-
-  enable_nat_gateway = true
-  map_public_ip_on_launch = true
-
-  tags = local.tags
-}
-
-# EKS Module
+# EKS Module Configuration
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "19.15.1"
@@ -44,24 +34,39 @@ module "eks" {
   cluster_name                   = local.name
   cluster_endpoint_public_access = true
 
-  vpc_id                   = data.aws_vpc.default.id
-  subnet_ids               = data.aws_subnets.default.ids  # Updated to use aws_subnets
-  control_plane_subnet_ids = data.aws_subnets.default.ids  # Updated to use aws_subnets
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update  = "OVERWRITE"
+    }
+    kube-proxy = {
+      most_recent = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update  = "OVERWRITE"
+    }
+    vpc-cni = {
+      most_recent = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update  = "OVERWRITE"
+    }
+  }
 
-  # EKS Managed Node Group(s)
+  vpc_id                   = data.aws_vpc.default.id  # Use default VPC ID
+  subnet_ids               = data.aws_subnet_ids.default.ids  # Use default subnet IDs
+  control_plane_subnet_ids = data.aws_subnet_ids.default.ids  # Control plane in public subnets
+
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     instance_types = ["m5.large"]
-
     attach_cluster_primary_security_group = true
   }
 
   eks_managed_node_groups = {
-    amc-cluster-wg = {
+    amc_cluster_wg = {
       min_size     = 1
       max_size     = 2
       desired_size = 2
-
       instance_types = ["t3.large"]
       capacity_type  = "SPOT"
 
@@ -72,4 +77,29 @@ module "eks" {
   }
 
   tags = local.tags
+}
+
+# VPC Module Configuration
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 4.0"
+
+  name              = "default-vpc"  # Give a name for identification
+  cidr              = data.aws_vpc.default.cidr_block
+
+  azs              = data.aws_vpc.default.azs  # Use availability zones from the default VPC
+  private_subnets  = [for subnet in data.aws_subnet.default_subnets : subnet.id]  # Use existing subnets
+  public_subnets   = []  # You can define public subnets if needed
+  intra_subnets    = []  # Define intra subnets if required
+
+  enable_nat_gateway = false  # Typically not needed for default VPC
+  map_public_ip_on_launch = true
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = 1
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = 1
+  }
 }
