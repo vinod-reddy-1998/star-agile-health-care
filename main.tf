@@ -42,25 +42,9 @@ resource "aws_instance" "test_server" {
   }
 }
 
-# Step 4: Create the production server instance
-resource "aws_instance" "prod_server" {
-  ami                    = "ami-0e86e20dae9224db8"  # Same or different AMI for production
-  instance_type          = "t2.micro"
-  key_name               = "key"  # Replace with the actual key pair name in AWS
-
-  # Use the security group
-  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
-
-  tags = {
-    Name = "ProdServer"
-  }
-}
 
 # Step 5: Output the public IP addresses
 output "test_server_ip" {
   value = aws_instance.test_server.public_ip
 }
 
-output "prod_server_ip" {
-  value = aws_instance.prod_server.public_ip
-}
