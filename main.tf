@@ -18,6 +18,9 @@ data "aws_subnet" "default_subnets" {
   id    = data.aws_subnets.default.ids[count.index]
 }
 
+# Get the availability zones
+data "aws_availability_zones" "available" {}
+
 locals {
   name = "my-eks-cluster"  # Specify your EKS cluster name
   tags = {
@@ -87,7 +90,7 @@ module "vpc" {
   name              = "default-vpc"  # Give a name for identification
   cidr              = data.aws_vpc.default.cidr_block
 
-  azs              = data.aws_vpc.default.azs  # Use the correct attribute for AZs
+  azs              = data.aws_availability_zones.available.names  # Use availability zones from the data source
   private_subnets  = [for subnet in data.aws_subnet.default_subnets : subnet.id]  # Use existing subnets
   public_subnets   = []  # You can define public subnets if needed
   intra_subnets    = []  # Define intra subnets if required
