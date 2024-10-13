@@ -54,5 +54,14 @@ pipeline {
         sh 'docker push vinod179179/healthcare:1.0'
       }
     }
+    stage('Provision Servers with Terraform') {
+            steps {
+                script {
+                    echo 'Provisioning servers with Terraform'
+                    sh 'terraform init'
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
   }
 }
