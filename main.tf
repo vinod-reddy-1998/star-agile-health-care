@@ -87,7 +87,7 @@ module "vpc" {
   name              = "default-vpc"  # Give a name for identification
   cidr              = data.aws_vpc.default.cidr_block
 
-  azs              = data.aws_vpc.default.availability_zones  # Use the correct attribute for AZs
+  azs              = data.aws_vpc.default.azs  # Use the correct attribute for AZs
   private_subnets  = [for subnet in data.aws_subnet.default_subnets : subnet.id]  # Use existing subnets
   public_subnets   = []  # You can define public subnets if needed
   intra_subnets    = []  # Define intra subnets if required
