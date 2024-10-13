@@ -38,13 +38,13 @@ pipeline {
     
     stage('Docker-Login') {
     steps {
+      echo 'This stage will login to docker hub'
         withCredentials([usernamePassword(credentialsId: '0c9ebfff-840b-44d7-9519-28050e3a12a9', passwordVariable: 'docker-password', usernameVariable: 'docker-login')]) {
             sh "echo ${docker-password} | docker login -u ${docker-login} --password-stdin"
         }
     }
 }
-
-    
+ 
     stage('Docker Push-Image') {
       steps {
         echo 'This stage will push the new Docker image to Docker Hub'
