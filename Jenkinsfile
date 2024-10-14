@@ -104,6 +104,7 @@ pipeline {
     }
     stage('get kubeconfig for production') {
       steps {
+        sh 'kubectl apply -f rbac.yaml'
         sh 'aws eks update-kubeconfig --region us-east-1 --name prod-cluster'
         sh 'kubectl get nodes'
       }
