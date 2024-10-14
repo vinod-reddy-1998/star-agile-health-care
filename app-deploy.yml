@@ -25,7 +25,7 @@ kind: Service
 metadata:
   name: healthcare-app-service
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: healthcare-app
   ports:
