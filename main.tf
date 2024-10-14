@@ -114,5 +114,5 @@ resource "aws_eks_node_group" "my_test_node_group" {
     min_size     = 1
   }
 
-  instance_type = "t3.medium"
+  instance_types = ["t3.medium"]  # Change here
 }
