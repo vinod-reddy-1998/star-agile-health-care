@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"  # Update this as needed
+      version = "~> 5.0"  # Adjust as needed
     }
   }
 
@@ -27,6 +27,9 @@ data "aws_subnet" "public_subnets" {
   id    = data.aws_subnet_ids.default.ids[count.index]
 }
 
+# New data source for availability zones
+data "aws_availability_zones" "available" {}
+
 locals {
   name = "my-eks-cluster"  # Specify your EKS cluster name
   tags = {
@@ -43,7 +46,7 @@ module "vpc" {
   name              = "default-vpc"  # Give a name for identification
   cidr              = data.aws_vpc.default.cidr_block
 
-  azs              = data.aws_vpc.default.azs  # Use availability zones from the default VPC
+  azs              = data.aws_availability_zones.available.names  # Use availability zones from the data source
   private_subnets  = [for subnet in data.aws_subnet.public_subnets : subnet.id]  # Use public subnets
   public_subnets   = []  # No public subnets defined
   intra_subnets    = []  # Define intra subnets if required
