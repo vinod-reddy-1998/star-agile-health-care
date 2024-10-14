@@ -29,19 +29,6 @@ data "aws_subnets" "public_subnets" {
 # New data source for availability zones
 data "aws_availability_zones" "available" {}
 
-locals {
-  supported_azs = [
-    "us-east-1a",
-    "us-east-1b",
-    "us-east-1c",
-    "us-east-1d",
-    "us-east-1f"
-  ]
-  
-  # Corrected the 'for' expression
-  filtered_azs = [for az in data.aws_availability_zones.available.names : az if az in local.supported_azs]
-}
-
 # Retrieve CIDR blocks for public subnets
 data "aws_subnet" "public" {
   for_each = toset(data.aws_subnets.public_subnets.ids)
@@ -67,7 +54,7 @@ module "vpc" {
   name              = "default-vpc"  # Give a name for identification
   cidr              = data.aws_vpc.default.cidr_block
 
-  azs              = local.filtered_azs  # Use filtered availability zones
+  azs              = data.aws_vpc.default.azs  # Use filtered availability zones
   private_subnets  = []  # No private subnets defined
   public_subnets   = local.public_subnet_cidrs  # Use CIDR blocks of public subnets
   intra_subnets    = []  # Define intra subnets if required
