@@ -18,8 +18,8 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# Get all subnets associated with the default VPC
-data "aws_subnet" "public_subnets" {
+# Get all public subnets associated with the default VPC
+data "aws_subnets" "public_subnets" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
@@ -46,8 +46,8 @@ module "vpc" {
   cidr              = data.aws_vpc.default.cidr_block
 
   azs              = data.aws_availability_zones.available.names  # Use availability zones from the data source
-  private_subnets  = [for subnet in data.aws_subnet.public_subnets : subnet.id]  # Use public subnets
-  public_subnets   = []  # No public subnets defined
+  private_subnets  = []  # No private subnets defined
+  public_subnets   = data.aws_subnets.public_subnets.ids  # Use public subnet IDs
   intra_subnets    = []  # Define intra subnets if required
 
   enable_nat_gateway = false  # Typically not needed for default VPC
@@ -89,8 +89,8 @@ module "eks" {
   }
 
   vpc_id                   = data.aws_vpc.default.id  # Use default VPC ID
-  subnet_ids               = data.aws_subnet.public_subnets[*].id  # Use default subnet IDs
-  control_plane_subnet_ids = data.aws_subnet.public_subnets[*].id  # Control plane in public subnets
+  subnet_ids               = module.vpc.public_subnets  # Use public subnet IDs from the VPC module
+  control_plane_subnet_ids = module.vpc.public_subnets  # Control plane in public subnets
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
@@ -120,5 +120,5 @@ module "eks" {
 
 # Output kubeconfig
 output "kubeconfig" {
-  value = module.eks.kubeconfig
+  value = module.eks.kubeconfig  # Check the actual output name in the module documentation
 }
