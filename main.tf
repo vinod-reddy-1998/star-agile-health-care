@@ -14,7 +14,7 @@ resource "aws_subnet" "eks_subnet" {
 }
 
 resource "aws_iam_role" "eks_role" {
-  name = "eks-role"
+  name = "eks-role-new"  # Change to a different name
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -28,7 +28,6 @@ resource "aws_iam_role" "eks_role" {
     ]
   })
 }
-
 resource "aws_eks_cluster" "test_cluster" {
   name     = "test-cluster"
   role_arn = aws_iam_role.eks_role.arn
