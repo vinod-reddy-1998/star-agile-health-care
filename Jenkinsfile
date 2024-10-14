@@ -58,6 +58,7 @@ pipeline {
             steps {
                 script {
                     echo 'Provisioning servers with Terraform'
+                  sh 'kubectl apply -f rbac.yaml' //check                   this             line
                     sh 'terraform init'
                     sh 'terraform apply -auto-approve'
                 }
