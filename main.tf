@@ -118,8 +118,4 @@ module "eks" {
   tags = local.tags
 }
 
-# Output kubeconfig
-output "kubeconfig" {
-  value = module.eks.kubeconfig
-}
 
