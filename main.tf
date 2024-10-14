@@ -29,7 +29,6 @@ data "aws_subnets" "public_subnets" {
 # New data source for availability zones
 data "aws_availability_zones" "available" {}
 
-# Filter for supported availability zones for EKS
 locals {
   supported_azs = [
     "us-east-1a",
