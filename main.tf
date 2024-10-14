@@ -18,13 +18,14 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
+# Use aws_subnets instead of aws_subnet_ids
+data "aws_subnets" "default" {
   vpc_id = data.aws_vpc.default.id
 }
 
 data "aws_subnet" "public_subnets" {
-  count = length(data.aws_subnet_ids.default.ids)
-  id    = data.aws_subnet_ids.default.ids[count.index]
+  count = length(data.aws_subnets.default.ids)
+  id    = data.aws_subnets.default.ids[count.index]
 }
 
 # New data source for availability zones
@@ -90,8 +91,8 @@ module "eks" {
   }
 
   vpc_id                   = data.aws_vpc.default.id  # Use default VPC ID
-  subnet_ids               = data.aws_subnet_ids.default.ids  # Use default subnet IDs
-  control_plane_subnet_ids = data.aws_subnet_ids.default.ids  # Control plane in public subnets
+  subnet_ids               = data.aws_subnets.default.ids  # Use default subnet IDs
+  control_plane_subnet_ids = data.aws_subnets.default.ids  # Control plane in public subnets
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
