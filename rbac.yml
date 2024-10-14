@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - rolearn: arn:aws:iam::024848448841:role/eks_node_role
+      username: eks-node
+      groups:
+        - system:masters
+  # Uncomment to map an IAM user if needed
+  # mapUsers: |
+  #   - userarn: arn:aws:iam::<account-id>:user/<your-iam-user>
+  #     username: <k8s-username>
+  #     groups:
+  #       - system:masters
