@@ -37,6 +37,8 @@ locals {
     "us-east-1d",
     "us-east-1f"
   ]
+  
+  # Corrected the 'for' expression
   filtered_azs = [for az in data.aws_availability_zones.available.names : az if az in local.supported_azs]
 }
 
@@ -52,6 +54,8 @@ locals {
     Environment = "test"
     Project     = "eks-demo"
   }
+  
+  # Collect CIDR blocks for public subnets
   public_subnet_cidrs = [for subnet in data.aws_subnet.public : subnet.cidr_block]
 }
 
@@ -75,4 +79,63 @@ module "vpc" {
     "kubernetes.io/role/elb" = 1
   }
 
-  private_subn
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = 1
+  }
+}
+
+# EKS module
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "19.15.1"
+
+  cluster_name                   = local.name
+  cluster_endpoint_public_access = true
+
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update  = "OVERWRITE"
+    }
+    kube-proxy = {
+      most_recent = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update  = "OVERWRITE"
+    }
+    vpc-cni = {
+      most_recent = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update  = "OVERWRITE"
+    }
+  }
+
+  vpc_id                   = data.aws_vpc.default.id  # Use default VPC ID
+  subnet_ids               = module.vpc.public_subnets  # Use public subnet CIDR blocks from the VPC module
+  control_plane_subnet_ids = module.vpc.public_subnets  # Control plane in public subnets
+
+  # EKS Managed Node Group(s)
+  eks_managed_node_group_defaults = {
+    ami_type       = "AL2_x86_64"
+    instance_types = ["m5.large"]
+
+    attach_cluster_primary_security_group = true
+  }
+
+  eks_managed_node_groups = {
+    amc-cluster-wg = {
+      min_size     = 1
+      max_size     = 2
+      desired_size = 2
+
+      instance_types = ["t3.large"]
+      capacity_type  = "SPOT"
+
+      tags = {
+        ExtraTag = "helloworld"
+      }
+    }
+  }
+
+  tags = local.tags
+}
