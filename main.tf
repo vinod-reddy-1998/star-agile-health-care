@@ -120,5 +120,6 @@ module "eks" {
 
 # Output kubeconfig
 output "kubeconfig" {
-  value = module.eks.kubeconfig_config # Check the actual output name in the module documentation
+  value = module.eks.kubeconfig
 }
+
