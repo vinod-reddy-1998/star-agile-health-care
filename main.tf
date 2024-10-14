@@ -29,12 +29,19 @@ data "aws_subnets" "public_subnets" {
 # New data source for availability zones
 data "aws_availability_zones" "available" {}
 
+# Retrieve CIDR blocks for public subnets
+data "aws_subnet" "public" {
+  for_each = toset(data.aws_subnets.public_subnets.ids)
+  id       = each.key
+}
+
 locals {
   name = "my-eks-cluster"  # Specify your EKS cluster name
   tags = {
     Environment = "test"
     Project     = "eks-demo"
   }
+  public_subnet_cidrs = [for subnet in data.aws_subnet.public : subnet.cidr_block]
 }
 
 # VPC module
@@ -47,7 +54,7 @@ module "vpc" {
 
   azs              = data.aws_availability_zones.available.names  # Use availability zones from the data source
   private_subnets  = []  # No private subnets defined
-  public_subnets   = data.aws_subnets.public_subnets.ids  # Use public subnet IDs
+  public_subnets   = local.public_subnet_cidrs  # Use CIDR blocks of public subnets
   intra_subnets    = []  # Define intra subnets if required
 
   enable_nat_gateway = false  # Typically not needed for default VPC
@@ -89,13 +96,14 @@ module "eks" {
   }
 
   vpc_id                   = data.aws_vpc.default.id  # Use default VPC ID
-  subnet_ids               = module.vpc.public_subnets  # Use public subnet IDs from the VPC module
+  subnet_ids               = module.vpc.public_subnets  # Use public subnet CIDR blocks from the VPC module
   control_plane_subnet_ids = module.vpc.public_subnets  # Control plane in public subnets
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     instance_types = ["m5.large"]
+
     attach_cluster_primary_security_group = true
   }
 
@@ -116,5 +124,3 @@ module "eks" {
 
   tags = local.tags
 }
-
-
