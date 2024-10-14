@@ -71,7 +71,7 @@ pipeline {
     }
     stage('get kubeconfig') {
       steps {
-        sh 'aws eks update-kubeconfig --region us-east-1 --name my-eks-cluster'
+        sh 'aws eks update-kubeconfig --region us-east-1 --name prod-cluster'
         sh 'kubectl get nodes'
       }
     }
